@@ -1,6 +1,6 @@
 # msc-lens
 
-[![Published on webcomponents.org](https://img.shields.io/badge/webcomponents.org-published-blue.svg)](https://www.webcomponents.org/element/msc-lens) 
+[![Published on webcomponents.org](https://img.shields.io/badge/webcomponents.org-published-blue.svg)](https://www.webcomponents.org/element/msc-lens) [![DeepScan grade](https://deepscan.io/api/teams/16372/projects/20129/branches/539057/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=16372&pid=20129&bid=539057)
 
 [Google Lens](https://lens.google/) is famous and powerful for image search. Users could use its fancy UI for image selection. I like its effect and wanna to apply it for services I owned. That's also the main reason I wrapped it into &lt;msc-lens />.
 
