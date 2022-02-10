@@ -109,10 +109,17 @@ ${_wccss}
 // Houdini Props and Vals
 if (CSS?.registerProperty) {
   CSS.registerProperty({
-    name: '--msc-collages-gap',
-    syntax: '<length>',
+    name: '--msc-lens-overlay-color',
+    syntax: '<color>',
     inherits: true,
-    initialValue: '1px'
+    initialValue: 'rgba(0,0,0,.5)'
+  });
+
+  CSS.registerProperty({
+    name: '--msc-lens-sensor-color',
+    syntax: '<color>',
+    inherits: true,
+    initialValue: 'rgba(255,255,255,1)'
   });
 }
 
@@ -131,6 +138,7 @@ export class MscLens extends HTMLElement {
     // data
     this.#data = {
       controller: '',
+      minorController: '',
       ddController: '',
       dX: 0,
       dY: 0,
@@ -169,7 +177,7 @@ export class MscLens extends HTMLElement {
   }
 
   async connectedCallback() {
-    const { main, selection, trigger } = this.#nodes;
+    const { trigger } = this.#nodes;
     const { config, error } = await _wcl.getWCConfig(this);
 
     // clear
@@ -210,11 +218,7 @@ export class MscLens extends HTMLElement {
     // evts
     this.#data.controller = new AbortController();
     const signal = this.#data.controller.signal;
-    main.addEventListener('click', this._onClick, { signal });
-    selection.addEventListener(evtDown, this._onDown, { signal });
-    selection.addEventListener('transitionend', this._onTransitionend, { signal });
     trigger.addEventListener('click', this._onTriggerClick, { signal });
-    window.addEventListener('resize', this._onResize, { signal });
 
     if (_wcl.isEventSupport('touchstart')) {
       /*
@@ -226,8 +230,12 @@ export class MscLens extends HTMLElement {
   }
 
   disconnectedCallback() {
-    if (this.#data?.controller) {
+    if (this.#data.controller?.abort) {
       this.#data.controller.abort();
+    }
+
+    if (this.#data.minorController?.abort) {
+      this.#data.minorController.abort();
     }
   }
 
@@ -280,7 +288,23 @@ export class MscLens extends HTMLElement {
       case 'active': {
         this._clearMain();
 
+        // cancel events binding
+        if (this.#data.minorController?.abort) {
+          this.#data.minorController.abort();
+        }
+
         if (this.active) {
+          // event binding
+          this.#data.minorController = new AbortController();
+          
+          const signal = this.#data.minorController.signal;
+          const { main, selection } = this.#nodes;
+
+          main.addEventListener('click', this._onClick, { signal });
+          selection.addEventListener(evtDown, this._onDown, { signal });
+          selection.addEventListener('transitionend', this._onTransitionend, { signal });
+          window.addEventListener('resize', this._onResize, { signal });
+
           this._onClick();
         }
 
@@ -789,18 +813,6 @@ export class MscLens extends HTMLElement {
     canvas.width = width;
     canvas.height = height;
     ctx.drawImage(this.querySelector('img'), deltaX, deltaY, width, height, 0, 0, width, height);
-    // canvas.toBlob(function(blob) {
-    //   var newImg = document.createElement('img'),
-    //       url = URL.createObjectURL(blob);
-
-    //   newImg.onload = function() {
-    //     // no longer need to read the blob so it's revoked
-    //     URL.revokeObjectURL(url);
-    //   };
-
-    //   newImg.src = url;
-    //   document.body.appendChild(newImg);
-    // });
 
     canvas.toBlob(
       (blob) => {
@@ -824,7 +836,12 @@ export class MscLens extends HTMLElement {
 
   _onResize() {
     if (this.active) {
-      this._onClick();
+      const { width, height } = this.#nodes.main.getBoundingClientRect();
+      const { cW, cH } = this.#data;
+
+      if (width !== cW && height !== cH) {
+        this._onClick();
+      }
     }
   }
 
