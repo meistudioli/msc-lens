@@ -829,21 +829,7 @@ export class MscLens extends HTMLElement {
     canvas.height = height;
     ctx.drawImage(this.querySelector('img'), deltaX, deltaY, width, height, 0, 0, width, height);
 
-    if (this.format === 'blob') {
-      canvas.toBlob(
-        (image) => {
-          this._fireEvent(custumEvents.capture, { image });
-
-          clearTimeout(this.#data.iid4Fetch);
-          this.#data.iid4Fetch = setTimeout(
-            () => {
-              this._fetch(image);
-            }
-          , this.delay);
-        }
-      );
-    } else {
-      const image = canvas.toDataURL();
+    const captureDone = (image) => {
       this._fireEvent(custumEvents.capture, { image });
 
       clearTimeout(this.#data.iid4Fetch);
@@ -852,20 +838,18 @@ export class MscLens extends HTMLElement {
           this._fetch(image);
         }
       , this.delay);
+    };
+
+    if (this.format === 'blob') {
+      canvas.toBlob(
+        (image) => {
+          captureDone(image);
+        }
+      );
+    } else {
+      const image = canvas.toDataURL();
+      captureDone(image);
     }
-
-    // canvas.toBlob(
-    //   (blob) => {
-    //     this._fireEvent(custumEvents.capture, { blob });
-
-    //     clearTimeout(this.#data.iid4Fetch);
-    //     this.#data.iid4Fetch = setTimeout(
-    //       () => {
-    //         this._fetch(blob);
-    //       }
-    //     , this.delay);
-    //   }
-    // );
   }
 
   _onTransitionend(evt) {
