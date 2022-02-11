@@ -32,6 +32,7 @@ Put `img[slot="msc-lens-vision"]` inside &lt;msc-lens /> as its child. It will u
       "sensorsize": 28,
       "active": false,
       "delay": 500,
+      "format": "blob",
       "webservice": {
         "uri": "https://your-domain/analytic",
         "fieldName": "lens",
@@ -159,6 +160,19 @@ Set delay for &lt;msc-lens />. It will delay fetch web service once user finish 
 </msc-lens>
 ```
 
+- **format**
+
+Set image format for &lt;msc-lens />. This attribute can only accept "`blob`" or "`dataURL`". Default is "`blob`".
+
+```html
+<msc-lens
+  format="blob"
+>
+  <img src="https://picsum.photos/id/635/1000/670" slot="msc-lens-vision" />
+</msc-lens>
+```
+
+
 - **webservice**
 
 Set web service information for &lt;msc-lens />. It should be JSON string. Developers could set `uri`、`fieldName` and extra `params` here.
@@ -179,6 +193,7 @@ Set web service information for &lt;msc-lens />. It should be JSON string. Devel
 | sensorsize | Number | Getter / Setter for senser size. Developers could use this property to setup sensor size. |
 | active | Boolean | Getter / Setter for active. It will switch to select / normal mode. |
 | delay | Number | Getter / Setter for delay. It will delay fetch web service once user finish select. |
+| format | String | Getter / Setter for format. It will set image format. This property can only accept "`blob`" or "`dataURL`". Default is "`blob`". |
 | webservice | Object | Getter / Setter for web service information. Developers could set `uri`、`fieldName` and extra `params` here. |
 
 ## Method
@@ -192,7 +207,7 @@ Set web service information for &lt;msc-lens />. It should be JSON string. Devel
 | Event Signature | Description |
 | ----------- | ----------- |
 | msc-lens-switch | Fired when &lt;msc-lens /> mode switched. Developers could get `active` through `event.detail`. |
-| msc-lens-capture | Fired when &lt;msc-lens /> captures image selection. Developers could get `blob` through `event.detail`. |
+| msc-lens-capture | Fired when &lt;msc-lens /> captures image selection. Developers could get `image` through `event.detail`. |
 | msc-lens-process | Fired when &lt;msc-lens /> fetch web service. |
 | msc-lens-result | Fired when &lt;msc-lens /> finished web service fetching. Developers could get `result` through `event.detail`. |
 

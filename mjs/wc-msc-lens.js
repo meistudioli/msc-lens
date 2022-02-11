@@ -7,6 +7,7 @@ const defaults = {
   sensorsize: 28, //px
   active: false,
   delay: 500,
+  format: 'blob', // blob or dataURL
   webservice: {
     uri: '',
     fieldName: 'lens',
@@ -260,10 +261,12 @@ export class MscLens extends HTMLElement {
           this.#config[attrName] = (isNaN(sensorsize) || sensorsize <= 0) ? defaults.sensorsize : sensorsize;
           break;
         }
-        case 'active': {
+        case 'active':
           this.#config[attrName] = true;
           break;
-        }
+        case 'format':
+          this.#config[attrName] = ['blob', 'dataURL'].includes(newValue) ? newValue : defaults.format;
+          break;
         case 'webservice':
           this.#config[attrName] = JSON.parse(newValue);
           break;
@@ -365,6 +368,18 @@ export class MscLens extends HTMLElement {
 
   get delay() {
     return this.#config.delay;
+  }
+
+  set format(value) {
+    if (value) {
+      this.setAttribute('format', value);
+    } else {
+      this.removeAttribute('format');
+    }
+  }
+
+  get format() {
+    return this.#config.format;
   }
 
   set sensorsize(value) {
@@ -749,7 +764,7 @@ export class MscLens extends HTMLElement {
     , 50);
   }
 
-  async _fetch(blob) {
+  async _fetch(image) {
     const { uri, fieldName, params } = this.webservice;
 
     if (!uri) {
@@ -759,7 +774,7 @@ export class MscLens extends HTMLElement {
     const url = new URL(uri);
     const formData = new FormData();
 
-    formData.set(fieldName, blob);
+    formData.set(fieldName, image);
     Object.keys(params).forEach(
       (key) => {
         formData.set(key, params[key]);
@@ -814,18 +829,43 @@ export class MscLens extends HTMLElement {
     canvas.height = height;
     ctx.drawImage(this.querySelector('img'), deltaX, deltaY, width, height, 0, 0, width, height);
 
-    canvas.toBlob(
-      (blob) => {
-        this._fireEvent(custumEvents.capture, { blob });
+    if (this.format === 'blob') {
+      canvas.toBlob(
+        (image) => {
+          this._fireEvent(custumEvents.capture, { image });
 
-        clearTimeout(this.#data.iid4Fetch);
-        this.#data.iid4Fetch = setTimeout(
-          () => {
-            this._fetch(blob);
-          }
-        , this.delay);
-      }
-    );
+          clearTimeout(this.#data.iid4Fetch);
+          this.#data.iid4Fetch = setTimeout(
+            () => {
+              this._fetch(image);
+            }
+          , this.delay);
+        }
+      );
+    } else {
+      const image = canvas.toDataURL();
+      this._fireEvent(custumEvents.capture, { image });
+
+      clearTimeout(this.#data.iid4Fetch);
+      this.#data.iid4Fetch = setTimeout(
+        () => {
+          this._fetch(image);
+        }
+      , this.delay);
+    }
+
+    // canvas.toBlob(
+    //   (blob) => {
+    //     this._fireEvent(custumEvents.capture, { blob });
+
+    //     clearTimeout(this.#data.iid4Fetch);
+    //     this.#data.iid4Fetch = setTimeout(
+    //       () => {
+    //         this._fetch(blob);
+    //       }
+    //     , this.delay);
+    //   }
+    // );
   }
 
   _onTransitionend(evt) {
