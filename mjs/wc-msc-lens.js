@@ -787,7 +787,7 @@ export class MscLens extends HTMLElement {
     try {
       response = await fetch(url.toString(), {
         headers: {
-          'content-type': 'application/json'
+          'content-type': 'multipart/form-data'
         },
         method: 'POST',
         mode: 'cors',
