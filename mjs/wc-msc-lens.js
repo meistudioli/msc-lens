@@ -786,9 +786,13 @@ export class MscLens extends HTMLElement {
     
     try {
       response = await fetch(url.toString(), {
-        headers: {
-          'content-type': 'multipart/form-data'
-        },
+        /*
+         * let browser decide, do not set content-type
+         * https://muffinman.io/blog/uploading-files-using-fetch-multipart-form-data/
+         */
+        // headers: {
+        //   'content-type': 'multipart/form-data'
+        // },
         method: 'POST',
         mode: 'cors',
         body: formData

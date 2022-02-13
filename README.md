@@ -175,7 +175,7 @@ Set image format for &lt;msc-lens />. This attribute can only accept "`blob`" or
 
 - **webservice**
 
-Set web service information for &lt;msc-lens />. It should be JSON string. Developers could set `uri`、`fieldName` and extra `params` here.
+Set web service information for &lt;msc-lens />. It should be JSON string. Developers could set `uri`、`fieldName` and extra `params` here.（`uri` must be full path）
 
 ```html
 <msc-lens
@@ -194,7 +194,7 @@ Set web service information for &lt;msc-lens />. It should be JSON string. Devel
 | active | Boolean | Getter / Setter for active. It will switch to select / normal mode. |
 | delay | Number | Getter / Setter for delay. It will delay fetch web service once user finish select. |
 | format | String | Getter / Setter for format. It will set image format. This property can only accept "`blob`" or "`dataURL`". Default is "`blob`". |
-| webservice | Object | Getter / Setter for web service information. Developers could set `uri`、`fieldName` and extra `params` here. |
+| webservice | Object | Getter / Setter for web service information. Developers could set `uri`、`fieldName` and extra `params` here.（`uri` must be full path） |
 
 ## Method
 
