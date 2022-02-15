@@ -63,9 +63,11 @@ Otherwise, developers could also choose remoteconfig to fetch config for &lt;msc
 <script type="module">
 import { MscLens } from 'https://your-domain/wc-msc-lens.js';
 
+const content = document.querySelector('img[slot="msc-lens-vision"]');
+
 // use DOM api
 const nodeA = document.createElement('msc-lens');
-nodeA.appendChild('img[slot="msc-lens-vision"]');
+nodeA.appendChild(content.cloneNode(true));
 document.body.appendChild(nodeA);
 nodeA.webservice = {
   uri: 'https://your-domain/analytic',
@@ -78,7 +80,7 @@ nodeA.webservice = {
 
 // new instance with Class
 const nodeB = new MscLens();
-nodeB.appendChild('img[slot="msc-lens-vision"]');
+nodeB.appendChild(content.cloneNode(true));
 document.body.appendChild(nodeB);
 nodeB.webservice = {
   uri: 'https://your-domain/analytic',
@@ -102,7 +104,7 @@ const config = {
   }
 };
 const nodeC = new MscLens(config);
-nodeC.appendChild('img[slot="msc-lens-vision"]');
+nodeC.appendChild(content.cloneNode(true));
 document.body.appendChild(nodeC);
 </script>
 ```
