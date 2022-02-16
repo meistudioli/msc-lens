@@ -141,6 +141,7 @@ export class MscLens extends HTMLElement {
       controller: '',
       minorController: '',
       ddController: '',
+      fetchController: '',
       dX: 0,
       dY: 0,
       action: '',
@@ -781,6 +782,14 @@ export class MscLens extends HTMLElement {
       }
     );
 
+    // fetch abort
+    if (this.#data.fetchController?.abort) {
+      this.#data.fetchController.abort();
+    }
+
+    this.#data.fetchController = new AbortController();
+    const signal = this.#data.fetchController.signal;
+
     let response = {};
     this._fireEvent(custumEvents.process);
     
@@ -795,7 +804,8 @@ export class MscLens extends HTMLElement {
         // },
         method: 'POST',
         mode: 'cors',
-        body: formData
+        body: formData,
+        signal
       })
       .then(
         (response) => {
@@ -813,6 +823,7 @@ export class MscLens extends HTMLElement {
       );
     } catch(err) {
       console.warn(`${_wcl.classToTagName(this.constructor.name)}: ${err.message}`);
+      response = { error:err.message };
     }
 
     this._fireEvent(custumEvents.result, { result:response });
