@@ -200,7 +200,7 @@ Set web service information for &lt;msc-lens />. It should be JSON string. Devel
 
 Set boundings information for &lt;msc-lens />. Developers could defined objects' bounding information through this. Each unit should be JSON string and required `top`、`right`、`bottom`、`left`（percentage）. When &lt;msc-lens /> active, there will be some indicators display.
 
-![<msc-lens />](https://blog.lalacube.com/mei/img/preview/msc-lens-boundings.png)
+![<msc-lens />](https://blog.lalacube.com/mei/img/preview/msc-lens-boundings2.png)
 
 ```html
 <msc-lens

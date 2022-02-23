@@ -373,7 +373,8 @@ export class MscLens extends HTMLElement {
 
         this.boundings.forEach(
           (bounding, idx) => {
-            const { oX, oY, sn = idx + 1 } = this._transBoundingInfo(bounding);
+            const { oX, oY } = this._transBoundingInfo(bounding);
+            const sn = idx + 1;
 
             zone.appendChild(templateForDot.content.cloneNode(true));
             const dot = zone.lastChild;
