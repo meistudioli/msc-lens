@@ -219,7 +219,7 @@ Set boundings information for &lt;msc-lens />. Developers could defined objects'
 | delay | Number | Getter / Setter for delay. It will delay fetch web service once user finish select. |
 | format | String | Getter / Setter for format. It will set image format. This property can only accept "`blob`" or "`dataURL`". Default is "`blob`". |
 | webservice | Object | Getter / Setter for web service information. Developers could set `uri`、`fieldName` and extra `params` here.（`uri` must be full path） |
-| boundings | Object | Getter / Setter for object bounding information. Developers could defined objects' bounding information in top、right、bottom、left.（percentage） |
+| boundings | Object | Getter / Setter for object bounding information. Developers could defined objects' bounding information in `top`、`right`、`bottom`、`left`.（percentage） |
 
 ## Method
 
