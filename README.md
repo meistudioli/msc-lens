@@ -40,7 +40,15 @@ Put `img[slot="msc-lens-vision"]` inside &lt;msc-lens /> as its child. It will u
           "origin": "extra param you like",
           "id": "extra param you like"
         }
-      }
+      },
+      "boundings": [
+        {
+          "top": 42.998,
+          "right": 11.8,
+          "bottom": 5.652,
+          "left": 35.987
+        }
+      ]
     }
   </script>
   <img src="https://picsum.photos/id/635/1000/670" slot="msc-lens-vision" />
@@ -188,6 +196,18 @@ Set web service information for &lt;msc-lens />. It should be JSON string. Devel
 ```
 
 
+- **boundings**
+
+Set boundings information for &lt;msc-lens />. Developers could defined objects' bounding information through this. Each unit should be JSON string and required `top`、`right`、`bottom`、`left`.（percentage）
+
+```html
+<msc-lens
+  boundings='[{"top":42.998,"right":11.8,"bottom":5.652,"left":35.987}]'
+>
+  <img src="https://picsum.photos/id/635/1000/670" slot="msc-lens-vision" />
+</msc-lens>
+```
+
 ## Properties
 
 | Property Name | Type | Description |
@@ -197,6 +217,7 @@ Set web service information for &lt;msc-lens />. It should be JSON string. Devel
 | delay | Number | Getter / Setter for delay. It will delay fetch web service once user finish select. |
 | format | String | Getter / Setter for format. It will set image format. This property can only accept "`blob`" or "`dataURL`". Default is "`blob`". |
 | webservice | Object | Getter / Setter for web service information. Developers could set `uri`、`fieldName` and extra `params` here.（`uri` must be full path） |
+| boundings | Object | Getter / Setter for object bounding information. Developers could defined objects' bounding information in top、right、bottom、left.（percentage） |
 
 ## Method
 
@@ -209,10 +230,11 @@ Set web service information for &lt;msc-lens />. It should be JSON string. Devel
 | Event Signature | Description |
 | ----------- | ----------- |
 | msc-lens-switch | Fired when &lt;msc-lens /> mode switched. Developers could get `active` through `event.detail`. |
-| msc-lens-capture | Fired when &lt;msc-lens /> captures image selection. Developers could get `image` through `event.detail`. |
+| msc-lens-capture | Fired when &lt;msc-lens /> captures image selection. Developers could get `image`、`bounding` through `event.detail`. |
 | msc-lens-process | Fired when &lt;msc-lens /> fetch web service. |
 | msc-lens-result | Fired when &lt;msc-lens /> finished web service fetching. Developers could get `result` through `event.detail`. |
 
 ## Reference
 - [Google Lens](https://lens.google/)
+- [TensorFlow > Object Detection (coco-ssd)](https://github.com/tensorflow/tfjs-models/tree/master/coco-ssd)
 - [&lt;msc-lens /&gt;](https://blog.lalacube.com/mei/webComponent_msc-lens.html)

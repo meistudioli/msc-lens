@@ -12,11 +12,12 @@ const defaults = {
     uri: '',
     fieldName: 'lens',
     params: {}
-  }
+  },
+  boundings: []
 };
 
 const booleanAttrs = ['active'];
-const objectAttrs = ['webservice'];
+const objectAttrs = ['webservice', 'boundings'];
 const custumEvents = {
   switch: 'msc-lens-switch',
   capture: 'msc-lens-capture',
@@ -40,6 +41,12 @@ ${_wccss}
   --border-radius: ${borderRadius}px;
   --transition-duration: ${transitionDuration}ms;
   --opacity: 0;
+
+  /* polka-dot-zone */
+  --polka-dot-zone-inline-size: 0;
+  --polka-dot-zone-block-size: 0;
+  --polka-dot-scale: .001;
+  --polka-dot-pointer-events: none;
 
   /* trigger */
   --trigger-size: 40px;
@@ -76,11 +83,42 @@ ${_wccss}
 .selection::before{position:absolute;content:'';inset-inline-start:var(--sensor-xy);inset-block-start:var(--sensor-xy);inline-size:100%;block-size:100%;border:var(--sensor-border-size) solid var(--sensor-color);border-radius:var(--sensor-border-radius);clip-path:var(--sensor-mask);}
 ::slotted(img){display:block;}
 
-.trigger{position:absolute;inset-inline-end:8px;inset-block-start:8px;inline-size:var(--trigger-size);block-size:var(--trigger-size);border-radius:var(--trigger-size);background:var(--trigger-icon);background-color:var(--trigger-bgcolor);transition:background 200ms ease;}
-.trigger:focus{--trigger-bgcolor:var(--trigger-bgcolor-active);}
+/* polka-dot */
+.polka-dot-zone {
+  --dot-size: 22px;
+  --delta: calc(var(--dot-size) / 2 * -1);
+  --border-size: 3px;
+}
+.polka-dot-zone{position:absolute;inset-inline-start:0;inset-block-start:0;inline-size:var(--polka-dot-zone-inline-size);block-size:var(--polka-dot-zone-block-size);pointer-events:none;z-index:1;overflow:hidden;}
+.polka-dot{position:absolute;inset-inline-start:var(--x,0);inset-block-start:var(--y,0);inline-size:0;block-size:0;pointer-events:var(--polka-dot-pointer-events);transition:transform 300ms ease var(--delay,100ms);transform:scale(var(--polka-dot-scale));filter:drop-shadow(0 0 2px var(--msc-lens-overlay-color));}
+.polka-dot:focus{outline:0 none;}
+.polka-dot::before{content:'';inline-size:var(--dot-size);block-size:var(--dot-size);border-radius:var(--dot-size);background-color:transparent;display:block;margin-inline-start:var(--delta);margin-block-start:var(--delta);border:var(--border-size) solid #fff;box-sizing:border-box;}
+
+.main[data-active-polka-dot="1"] .polka-dot:nth-of-type(1),
+.main[data-active-polka-dot="2"] .polka-dot:nth-of-type(2),
+.main[data-active-polka-dot="3"] .polka-dot:nth-of-type(3),
+.main[data-active-polka-dot="4"] .polka-dot:nth-of-type(4),
+.main[data-active-polka-dot="5"] .polka-dot:nth-of-type(5),
+.main[data-active-polka-dot="6"] .polka-dot:nth-of-type(6),
+.main[data-active-polka-dot="7"] .polka-dot:nth-of-type(7),
+.main[data-active-polka-dot="8"] .polka-dot:nth-of-type(8),
+.main[data-active-polka-dot="9"] .polka-dot:nth-of-type(9),
+.main[data-active-polka-dot="10"] .polka-dot:nth-of-type(10) {
+  --polka-dot-scale: 0;
+  --delay: 0ms;
+}
+
+.trigger{position:absolute;inset-inline-end:8px;inset-block-start:8px;inline-size:var(--trigger-size);block-size:var(--trigger-size);border-radius:var(--trigger-size);background:var(--trigger-icon);background-color:var(--trigger-bgcolor);transition:background 200ms ease;z-index:2;}
+.trigger:focus{--trigger-bgcolor:var(--trigger-bgcolor-active);outline:0 none;}
 .trigger:active{transform:scale(.95);}
 
-:host([active]) .main{
+:host([active]) .main {
+  /* polka-dot-zone */
+  --polka-dot-zone-inline-size: 100%;
+  --polka-dot-zone-block-size: 100%;
+  --polka-dot-scale: 1;
+  --polka-dot-pointer-events: auto;
+
   /* overlay */
   --overlay-inline-size: var(--overlay-inline-size-active);
   --overlay-block-size: var(--overlay-block-size-active);
@@ -100,12 +138,27 @@ ${_wccss}
 }
 </style>
 
-<div class="main main--basis">
+<div class="main main--basis" data-active-polka-dot1="1">
   <slot name="msc-lens-vision"></slot>
   <div class="selection"></div>
-  <a class="trigger stuff" title="switch mode" aria-label="switch mode">switch mode</a>
+  <div class="polka-dot-zone">
+    <a href="#polka-dot" class="polka-dot"></a>
+    <a href="#polka-dot" class="polka-dot"></a>
+  </div>
+  <a href="#switch" class="trigger stuff" title="switch mode" aria-label="switch mode">switch mode</a>
 </div>
 `;
+
+const templateForDot = document.createElement('template');
+templateForDot.innerHTML = `<a href="#polka-dot" class="polka-dot"></a>`;
+
+// unit: %
+const placeholderForBounding = {
+  top: 0,
+  right: 0,
+  bottom: 0,
+  left: 0
+};
 
 // Houdini Props and Vals
 if (CSS?.registerProperty) {
@@ -133,7 +186,7 @@ export class MscLens extends HTMLElement {
     super();
 
     // template
-    this.attachShadow({ mode: 'open', delegatesFocus: true });
+    this.attachShadow({ mode: 'open', delegatesFocus: false });
     this.shadowRoot.appendChild(template.content.cloneNode(true));
 
     // data
@@ -158,6 +211,7 @@ export class MscLens extends HTMLElement {
       main: this.shadowRoot.querySelector('.main'),
       selection: this.shadowRoot.querySelector('.selection'),
       trigger: this.shadowRoot.querySelector('.trigger'),
+      zone: this.shadowRoot.querySelector('.polka-dot-zone'),
       source: ''
     };
 
@@ -176,6 +230,7 @@ export class MscLens extends HTMLElement {
     this._onResize = this._onResize.bind(this);
     this._onTriggerClick = this._onTriggerClick.bind(this);
     this._onTouch = this._onTouch.bind(this);
+    this._onZoneClick = this._onZoneClick.bind(this);
   }
 
   async connectedCallback() {
@@ -271,6 +326,28 @@ export class MscLens extends HTMLElement {
         case 'webservice':
           this.#config[attrName] = JSON.parse(newValue);
           break;
+        case 'boundings': {
+          try {
+            const boundings = JSON.parse(newValue).reduce(
+              (acc, cur) => {
+                const data = {
+                  ...placeholderForBounding,
+                  ...cur
+                };
+
+                acc.push(data);
+
+                return acc;
+              }
+            , [])
+            .slice(0, 10); // max count: 10
+
+            this.#config[attrName] = boundings;
+          } catch(err) {
+            console.warn(`${_wcl.classToTagName(this.constructor.name)}: ${err.message}`);
+          }
+          break;
+        }
         default:
           this.#config[attrName] = newValue;
           break;
@@ -289,6 +366,30 @@ export class MscLens extends HTMLElement {
       case 'sensorsize':
         this._setCustomProperties();
         break;
+      case 'boundings': {
+        const { main, zone, styleSheet } = this.#nodes;
+        _wcl.removeAllChildNodes(zone);
+        main.dataset.activePolkaDot = -1;
+
+        this.boundings.forEach(
+          (bounding, idx) => {
+            const { oX, oY, sn = idx + 1 } = this._transBoundingInfo(bounding);
+
+            zone.appendChild(templateForDot.content.cloneNode(true));
+            const dot = zone.lastChild;
+            dot.dataset.sn = sn;
+
+            _wcl.addStylesheetRules(`.polka-dot:nth-of-type(${sn})`,
+              {
+                '--x': `${oX}%`,
+                '--y': `${oY}%`,
+                '--delay': `${_wcl.getRand(100, 200)}ms`
+              }
+            , styleSheet);
+          }
+        );
+        break;
+      }
       case 'active': {
         this._clearMain();
 
@@ -302,14 +403,20 @@ export class MscLens extends HTMLElement {
           this.#data.minorController = new AbortController();
           
           const signal = this.#data.minorController.signal;
-          const { main, selection } = this.#nodes;
+          const { main, selection, zone } = this.#nodes;
 
           main.addEventListener('click', this._onClick, { signal });
+          zone.addEventListener('click', this._onZoneClick, { signal });
           selection.addEventListener(evtDown, this._onDown, { signal });
           selection.addEventListener('transitionend', this._onTransitionend, { signal });
           window.addEventListener('resize', this._onResize, { signal });
 
-          this._onClick();
+          if (this.boundings.length) {
+            const seed = Math.floor(Math.random() * this.boundings.length);
+            Array.from(zone.querySelectorAll('a'))[seed].click();
+          } else {
+            this._onClick();
+          }
         }
 
         this._fireEvent(custumEvents.switch, { active:this.active });
@@ -341,6 +448,21 @@ export class MscLens extends HTMLElement {
 
       this[prop] = value;
     }
+  }
+
+  set boundings(value) {
+    if (value) {
+      const newValue = [
+        ...(typeof value === 'string' ? JSON.parse(value) : value)
+      ];
+      this.setAttribute('boundings', JSON.stringify(newValue));
+    } else {
+      this.removeAttribute('boundings');
+    }
+  }
+
+  get boundings() {
+    return this.#config.boundings;
   }
 
   set webservice(value) {
@@ -413,6 +535,22 @@ export class MscLens extends HTMLElement {
     ));
   }
 
+  _transBoundingInfo({ top, right, bottom, left }) {
+    const inlineSize = 100 - left - right;
+    const blockSize = 100 - top - bottom;
+    const oX = left + inlineSize / 2;
+    const oY = top + blockSize / 2;
+
+    return {
+      inlineSize,
+      blockSize,
+      oX,
+      oY,
+      aX: left,
+      aY: top
+    };
+  }
+
   _loadSource() {
     return new Promise(
       (resolve, reject) => {
@@ -472,50 +610,74 @@ export class MscLens extends HTMLElement {
   }
 
   _clearMain() {
+    const { main } = this.#nodes;
+
     clearTimeout(this.#data.iid);
-    this.#nodes.main.classList.remove('main--active', 'main--dragging');
+    main.classList.remove('main--active', 'main--dragging');
+    main.dataset.activePolkaDot = -1;
   }
 
-  _onClick(evt) {
+  _onClick(evt = {}) {
     if (!this.active || this.dataset.action || this.#data.freeze) {
       return;
     }
 
     this._updateInfo();
+    this._clearMain();
+
     const { main } = this.#nodes;
     const { cW, cH, cX, cY } = this.#data;
-    const size = Math.min(cW, cH) / 2;
-    let pX, pY;
-    if (evt) {
-      const { x, y } = _wcl.pointer(evt);
-      pX = x;
-      pY = y;
-    } else {
-      pX = cX + cW / 2;
-      pY = cY + cH / 2;
-    }
-    const oX = pX - cX;
-    const oY = pY - cY;
+    let data;
 
-    this._clearMain();
+    if (evt?.inlineSize) {
+      // polka-dot click
+      data = { ...evt };
+      this.#nodes.main.dataset.activePolkaDot = evt.sn;
+    } else {
+      // main click or reset
+      const size = Math.min(cW, cH) / 2;
+      let pX, pY;
+      
+      if (evt?.preventDefault) {
+        const { x, y } = _wcl.pointer(evt);
+        pX = x;
+        pY = y;
+      } else {
+        pX = cX + cW / 2;
+        pY = cY + cH / 2;
+      }
+
+      const oX = pX - cX;
+      const oY = pY - cY;
+
+      // active
+      const aX = (oX - size/2) > 0 ? (oX - size/2) : 0;
+      const aY = (oY - size/2) > 0 ? (oY - size/2) : 0;
+
+      data = {
+        oX,
+        oY,
+        aX,
+        aY,
+        inlineSize: (aX + size > cW) ? (cW - aX) : (oX - aX + size/2),
+        blockSize: (aY + size > cH) ? (cH - aY) : (oY - aY + size/2)
+      };
+    }
 
     // basis
     this._setCustomProperties({
       type: 'basis',
-      oX,
-      oY
+      oX: data.oX,
+      oY: data.oY
     });
 
     // active
-    const aX = (oX - size/2) > 0 ? (oX - size/2) : 0;
-    const aY = (oY - size/2) > 0 ? (oY - size/2) : 0;
-
     this._setCustomProperties({
       type: 'active',
-      oX: aX,
-      oY: aY,
-      inlineSize: (aX + size > cW) ? (cW - aX) : (oX - aX + size/2),
-      blockSize: (aY + size > cH) ? (cH - aY) : (oY - aY + size/2)
+      oX: data.aX,
+      oY: data.aY,
+      inlineSize: data.inlineSize,
+      blockSize: data.blockSize
     });
 
     this.#data.iid = setTimeout(
@@ -603,6 +765,7 @@ export class MscLens extends HTMLElement {
       return;
     }
 
+    this.#nodes.main.dataset.activePolkaDot = -1;
     this.#data.freeze = true;
 
     switch (this.dataset.action) {
@@ -845,7 +1008,13 @@ export class MscLens extends HTMLElement {
     ctx.drawImage(this.querySelector('img'), deltaX, deltaY, width, height, 0, 0, width, height);
 
     const captureDone = (image) => {
-      this._fireEvent(custumEvents.capture, { image });
+      const bounding = {
+        top: (sY - cY) * 100 / cH,
+        right: (cW - (sX - cX) - sW) * 100 / cW,
+        bottom: (cH - (sY - cY) - sH) * 100 / cH,
+        left: (sX - cX) * 100 / cW
+      };
+      this._fireEvent(custumEvents.capture, { image, bounding });
 
       clearTimeout(this.#data.iid4Fetch);
       this.#data.iid4Fetch = setTimeout(
@@ -889,6 +1058,33 @@ export class MscLens extends HTMLElement {
     evt.stopPropagation();
 
     this.active = !this.active;
+  }
+
+  _onZoneClick(evt) {
+    const { target } = evt;
+
+    if (!target.closest('.polka-dot')) {
+      return;
+    }
+
+    evt.preventDefault();
+    evt.stopPropagation();
+
+    this._updateInfo();
+    const { cW, cH } = this.#data;
+    const sn = +target.dataset.sn;
+    const bounding = this.boundings[sn - 1];
+    const { oX, oY, aX, aY, inlineSize, blockSize } = this._transBoundingInfo(bounding);
+
+    this._onClick({
+      oX: cW * oX / 100,
+      oY: cH * oY / 100,
+      aX: cW * aX / 100,
+      aY: cH * aY / 100,
+      inlineSize: cW * inlineSize / 100,
+      blockSize: cH * blockSize / 100,
+      sn
+    });
   }
 
   _onTouch() {
