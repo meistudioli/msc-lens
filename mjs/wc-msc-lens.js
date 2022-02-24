@@ -75,7 +75,7 @@ ${_wccss}
   --sensor-color: var(--msc-lens-sensor-color);
   --sensor-xy: calc(var(--sensor-border-size) * -1);
   --sensor-border-radius: calc(var(--sensor-border-size) + var(--border-radius));
-  --sensor-mask: polygon(0% 0%, var(--sensor-size) 0%, var(--sensor-size) var(--sensor-size), 0% var(--sensor-size), 0% 0%, 0% calc(100% - var(--sensor-size)), var(--sensor-size) calc(100% - var(--sensor-size)), var(--sensor-size) 100%, 0 100%, 0% calc(100% - var(--sensor-size)), 0% 100%, 100% 100%, 100% calc(100% - var(--sensor-size)), calc(100% - var(--sensor-size)) calc(100% - var(--sensor-size)), calc(100% - var(--sensor-size)) 100%, 0% 100%, 0% 0%, 100% 0%, 100% var(--sensor-size), calc(100% - var(--sensor-size)) var(--sensor-size), calc(100% - var(--sensor-size)) 0%, 0% 0%);
+  --sensor-mask: polygon(0% 0%, var(--sensor-size) 0%, var(--sensor-size) var(--sensor-size), 0% var(--sensor-size), 0% 0%, 0% calc(100% - var(--sensor-size)), var(--sensor-size) calc(100% - var(--sensor-size)), var(--sensor-size) 100%, 0 100%, 0% calc(100% - var(--sensor-size)), 0% 100%, calc(100% - var(--sensor-size)) 100%, calc(100% - var(--sensor-size)) calc(100% - var(--sensor-size)), 100% calc(100% - var(--sensor-size)), 100% 100%, 0% 100%, 0% 0%, 100% 0%, 100% var(--sensor-size), calc(100% - var(--sensor-size)) var(--sensor-size), calc(100% - var(--sensor-size)) 0%, 0% 0%);
 }
 .main{position:relative;}
 .main::before{position:absolute;inset-inline-start:0;inset-block-start:0;inline-size:var(--overlay-inline-size);block-size:var(--overlay-block-size);content:'';background:var(--msc-lens-overlay-color);opacity:var(--opacity);transition:opacity 100ms ease,clip-path var(--transition-duration);clip-path:var(--overlay-mask);}
@@ -201,6 +201,11 @@ export class MscLens extends HTMLElement {
       freeze: false,
       nW: 0,
       nH: 0,
+      sX: 0,
+      sY: 0,
+      sW: 0,
+      sH: 0,
+      minSize: 0,
       iid: '',
       iid4Fetch: ''
     };
@@ -365,6 +370,7 @@ export class MscLens extends HTMLElement {
     switch (attrName) {
       case 'sensorsize':
         this._setCustomProperties();
+        this.#data.minSize = this.sensorsize * 2;
         break;
       case 'boundings': {
         const { main, zone, styleSheet } = this.#nodes;
@@ -753,8 +759,7 @@ export class MscLens extends HTMLElement {
 
   _onMove(evt) {
     const { x:pX, y:pY } = _wcl.pointer(evt);
-    const minSize = this.sensorsize * 2;
-    const { sX, sY, dX, dY, sW, sH, cW, cH, cX, cY } = this.#data;
+    const { sX, sY, dX, dY, sW, sH, cW, cH, cX, cY, minSize } = this.#data;
 
     const limitLeft = cX;
     const limitRight = cX + cW;
@@ -920,6 +925,14 @@ export class MscLens extends HTMLElement {
     delete this.dataset.action;
 
     this._capture();
+
+    // reset basis
+    const { sX, sY, sW, sH, cX,cY } = this.#data;
+    this._setCustomProperties({
+      type: 'basis',
+      oX: sX - cX + (sW / 2),
+      oY: sY - cY + (sH / 2)
+    });
 
     // prevent fire click event 
     setTimeout(

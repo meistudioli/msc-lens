@@ -1,6 +1,6 @@
 {
   "name": "msc-lens",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Google Lens is famous and powerful for image search. Users could use its fancy UI for image selection. I like its effect and wanna to apply it for services I owned. That's also the main reason I wrapped it into <msc-lens />. Developers could received exactly the image which users just selected and do some analytics and recommend. Then render results through event which <msc-lens /> provided.",
   "main": "index.html",
   "scripts": {
