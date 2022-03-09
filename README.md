@@ -226,6 +226,7 @@ Set boundings information for &lt;msc-lens />. Developers could defined objects'
 | Method Signature | Description |
 | ----------- | ----------- |
 | toggle([force]) | Toggle &lt;msc-lens /> select or normal mode. When argument is present: If the argument is true, &lt;msc-lens /> will switch to select mode, and if it is false, back to normal. |
+| switchSource(source-address) | Switch &lt;msc-lens /> image source.（this is an async method） |
 
 ## Event
 
@@ -234,6 +235,8 @@ Set boundings information for &lt;msc-lens />. Developers could defined objects'
 | msc-lens-switch | Fired when &lt;msc-lens /> mode switched. Developers could get `active` through `event.detail`. |
 | msc-lens-capture | Fired when &lt;msc-lens /> captures image selection. Developers could get `image`、`bounding` through `event.detail`. |
 | msc-lens-process | Fired when &lt;msc-lens /> fetch web service. |
+| msc-lens-switching | Fired when &lt;msc-lens /> switch image source. |
+| msc-lens-switchend | Fired when &lt;msc-lens /> switch image source end. |
 | msc-lens-result | Fired when &lt;msc-lens /> finished web service fetching. Developers could get `result` through `event.detail`. |
 
 ## Reference

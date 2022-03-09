@@ -22,6 +22,8 @@ const custumEvents = {
   switch: 'msc-lens-switch',
   capture: 'msc-lens-capture',
   process: 'msc-lens-process',
+  switching: 'msc-lens-switching',
+  switchend: 'msc-lens-switchend',
   result: 'msc-lens-result'
 };
 
@@ -138,13 +140,10 @@ ${_wccss}
 }
 </style>
 
-<div class="main main--basis" data-active-polka-dot1="1">
+<div class="main main--basis">
   <slot name="msc-lens-vision"></slot>
   <div class="selection"></div>
-  <div class="polka-dot-zone">
-    <a href="#polka-dot" class="polka-dot"></a>
-    <a href="#polka-dot" class="polka-dot"></a>
-  </div>
+  <div class="polka-dot-zone"></div>
   <a href="#switch" class="trigger stuff" title="switch mode" aria-label="switch mode">switch mode</a>
 </div>
 `;
@@ -399,6 +398,7 @@ export class MscLens extends HTMLElement {
       }
       case 'active': {
         this._clearMain();
+        this._clearFetch();
 
         // cancel events binding
         if (this.#data.minorController?.abort) {
@@ -624,6 +624,15 @@ export class MscLens extends HTMLElement {
     main.dataset.activePolkaDot = -1;
   }
 
+  _clearFetch() {
+    clearTimeout(this.#data.iid4Fetch);
+
+    // fetch abort
+    if (this.#data.fetchController?.abort) {
+      this.#data.fetchController.abort();
+    }
+  }
+
   _onClick(evt = {}) {
     if (!this.active || this.dataset.action || this.#data.freeze) {
       return;
@@ -743,6 +752,8 @@ export class MscLens extends HTMLElement {
     }
 
     evt.preventDefault();
+
+    this._clearFetch();
 
     // evts
     html.addEventListener(evtMove, this._onMove, { signal });
@@ -949,6 +960,8 @@ export class MscLens extends HTMLElement {
       return;
     }
 
+    this._clearFetch();
+
     const url = new URL(uri);
     const formData = new FormData();
 
@@ -958,11 +971,6 @@ export class MscLens extends HTMLElement {
         formData.set(key, params[key]);
       }
     );
-
-    // fetch abort
-    if (this.#data.fetchController?.abort) {
-      this.#data.fetchController.abort();
-    }
 
     this.#data.fetchController = new AbortController();
     const signal = this.#data.fetchController.signal;
@@ -1111,6 +1119,29 @@ export class MscLens extends HTMLElement {
     } else {
       this.active = !this.active;
     }
+  }
+
+  async switchSource(path) {
+    this._clearFetch();
+
+    this.active = false;
+    this.boundings = [];
+
+    this._fireEvent(custumEvents.switching);
+
+    try {
+      this.#nodes.source.src = path;
+      const { naturalWidth, naturalHeight } = await this._loadSource();
+      
+      this.#data.nW = naturalWidth;
+      this.#data.nH = naturalHeight;
+
+      this._updateInfo();
+    } catch(err) {
+      console.warn(`${_wcl.classToTagName(this.constructor.name)}: ${err.message}`);
+    }
+
+    this._fireEvent(custumEvents.switchend);
   }
 }
 
