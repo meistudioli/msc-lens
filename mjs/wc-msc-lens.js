@@ -161,19 +161,23 @@ const placeholderForBounding = {
 
 // Houdini Props and Vals
 if (CSS?.registerProperty) {
-  CSS.registerProperty({
-    name: '--msc-lens-overlay-color',
-    syntax: '<color>',
-    inherits: true,
-    initialValue: 'rgba(0,0,0,.5)'
-  });
+  try {
+    CSS.registerProperty({
+      name: '--msc-lens-overlay-color',
+      syntax: '<color>',
+      inherits: true,
+      initialValue: 'rgba(0,0,0,.5)'
+    });
 
-  CSS.registerProperty({
-    name: '--msc-lens-sensor-color',
-    syntax: '<color>',
-    inherits: true,
-    initialValue: 'rgba(255,255,255,1)'
-  });
+    CSS.registerProperty({
+      name: '--msc-lens-sensor-color',
+      syntax: '<color>',
+      inherits: true,
+      initialValue: 'rgba(255,255,255,1)'
+    });
+  } catch(err) {
+    console.warn(`msc-lens: ${err.message}`);
+  }
 }
 
 export class MscLens extends HTMLElement {
@@ -954,7 +958,7 @@ export class MscLens extends HTMLElement {
   }
 
   async _fetch(image) {
-    const { uri, fieldName, params } = this.webservice;
+    const { uri, fieldName, params = {} } = this.webservice;
 
     if (!uri) {
       return;
@@ -1016,7 +1020,8 @@ export class MscLens extends HTMLElement {
 
   _capture() {
     this._updateInfo();
-    const { sW, sH, sX, sY, cW, cH, cX, cY, nW, nH } = this.#data;
+    const { sW, sH, sX, sY, cW, cH, cX, cY } = this.#data;
+    const { naturalWidth:nW, naturalHeight:nH } = this.#nodes.source;
     
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
